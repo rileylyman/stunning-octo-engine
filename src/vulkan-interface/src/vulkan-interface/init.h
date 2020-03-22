@@ -13,6 +13,7 @@
 #include <vulkan/vulkan.h>
 #include "log/log.h"
 #include "vulkan-interface/debug.h"
+#include "vulkan-interface/extension.h"
 
 
 #define WINDOW_WIDTH  800
