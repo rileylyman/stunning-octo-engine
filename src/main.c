@@ -1,13 +1,10 @@
 //#define GLM_FORCE_RADIANS
 //#define GLM_FORCE_DEPTH_ZERO_TO_ONE //TODO : 0-1 depth! 
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #include "log/log.h"
-#include "vulkan-interface/extension.h"
-#include "vulkan-interface/init.h"
-#include "vulkan-interface/debug.h"
+#include "vulkan-interface/interface-vk.h"
 
 
 int main() {
