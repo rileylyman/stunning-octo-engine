@@ -59,12 +59,12 @@ VkInstance initVulkan() {
     bool allLayersFound = true;
     for (int i = 0; i < NUM_VALIDATION_LAYERS; i++) {
 
-        log_trace("Requested layer: %s\n", validationLayers[i]);
+        log_trace("Requested layer: %s\n", debugRequestedValidationLayers[i]);
 
         bool layerFound = false;
         for (int j = 0; j < layerCount; j++) {
             log_trace("Found layer: %s\n", layers[j].layerName);
-            if (!strcmp(validationLayers[i], layers[j].layerName)) {
+            if (!strcmp(debugRequestedValidationLayers[i], layers[j].layerName)) {
                 layerFound = true;
                 log_trace(" \t... layer matches!\n");
                 break;
@@ -94,7 +94,7 @@ VkInstance initVulkan() {
         .enabledLayerCount          = 0,
 #else
         .enabledLayerCount          = NUM_VALIDATION_LAYERS,
-        .ppEnabledLayerNames        = validationLayers,
+        .ppEnabledLayerNames        = debugRequestedValidationLayers,
         .pNext                      = (VkDebugUtilsMessengerCreateInfoEXT *) &debugCreateInfo,
 #endif
     };

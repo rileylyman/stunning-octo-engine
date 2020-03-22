@@ -1,5 +1,9 @@
 #include "vulkan-interface/debug.h"
 
+const char *debugRequestedValidationLayers[NUM_VALIDATION_LAYERS] = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
 //
 // This is the debug callback function called by the validation
 // layers
