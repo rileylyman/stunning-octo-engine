@@ -4,20 +4,52 @@
 #include "vulkan-interface/device.h"
 #include "language/optional.h"
 
-bool isDeviceSuitable(VkInstance instace, VkPhysicalDevice device) {
+//
+// Return whether the given Indices contain all the required values within
+// them. 
+//
+bool queue_family_indices_is_complete(struct QueueFamilyIndices *indices) {
+    return optional_index_has_value(&indices->graphics_family_index);
+}
+
+//
+// Get the indices of queue families which satisfy certain properties
+// within the list of queue families for this physical device. 
+//
+struct QueueFamilyIndices queue_family_indices_get_indices(VkPhysicalDevice device) {
+
+    struct OptionalIndex graphics_family_index = optional_index_empty();
+
+    uint32_t queue_family_count;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, NULL);
+
+    VkQueueFamilyProperties queue_family_properties[queue_family_count];
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_family_properties);
+
+    for (uint32_t i = 0; i < queue_family_count; i++) {
+        if (queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            optional_index_set_value(&graphics_family_index, i);
+            break;
+        }
+    }
+
+    return (struct QueueFamilyIndices) {
+        .graphics_family_index = graphics_family_index
+    };
+}
+
+bool is_device_suitable(VkPhysicalDevice device) {
     VkPhysicalDeviceProperties properties;
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceProperties(device, &properties);
     vkGetPhysicalDeviceFeatures(device, &features);
 
-    //
-    // TODO: Do something here
-    //
-
-    return true;
+    struct QueueFamilyIndices indices = queue_family_indices_get_indices(device);
+    
+    return queue_family_indices_is_complete(&indices);
 }
 
-VkPhysicalDevice pickPhysicalDevice(VkInstance instance) {
+VkPhysicalDevice pick_physical_device(VkInstance instance) {
     VkResult intResult;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
@@ -40,7 +72,7 @@ VkPhysicalDevice pickPhysicalDevice(VkInstance instance) {
 
     for (int i = 0; i < deviceCount; i++) {
         VkPhysicalDevice dev = devices[i];
-        if (isDeviceSuitable(instance, dev)) {
+        if (is_device_suitable(dev)) {
             //
             // For now, we just choose the first physical device which matches
             //

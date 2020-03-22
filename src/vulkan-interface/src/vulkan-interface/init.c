@@ -3,7 +3,7 @@
 //
 // Creates the GLFW window
 //
-GLFWwindow *initWindow() {
+GLFWwindow *init_window() {
     //
     // Initialize GLFW with no API (no OpenGL)
     //
@@ -19,7 +19,7 @@ GLFWwindow *initWindow() {
 // module for the required extensions. Queries the debug.h module for the required
 // validation layers. Then it creates the Vulkan instance and returns it.
 //
-VkInstance initVulkan() {
+VkInstance init_vulkan() {
 
     VkResult intResult;
 
@@ -27,7 +27,7 @@ VkInstance initVulkan() {
     // Checking for extensions
     //
     uint32_t extensionCount;
-    const char** requiredExtensions = getRequiredExtensionNames_FREE(&extensionCount);
+    const char** requiredExtensions = get_required_extension_names_FREE(&extensionCount);
 
     uint32_t totalExtensionCount;
     vkEnumerateInstanceExtensionProperties(NULL, &totalExtensionCount, NULL);
@@ -59,12 +59,12 @@ VkInstance initVulkan() {
     bool allLayersFound = true;
     for (int i = 0; i < NUM_VALIDATION_LAYERS; i++) {
 
-        log_trace("Requested layer: %s\n", debugRequestedValidationLayers[i]);
+        log_trace("Requested layer: %s\n", debug_requested_validation_layers[i]);
 
         bool layerFound = false;
         for (int j = 0; j < layerCount; j++) {
             log_trace("Found layer: %s\n", layers[j].layerName);
-            if (!strcmp(debugRequestedValidationLayers[i], layers[j].layerName)) {
+            if (!strcmp(debug_requested_validation_layers[i], layers[j].layerName)) {
                 layerFound = true;
                 log_trace(" \t... layer matches!\n");
                 break;
@@ -83,18 +83,18 @@ VkInstance initVulkan() {
     // pNext pointer in the instance create info in order to enable debugging
     // of vkCreateInstance and vkDestroyInstance calls.
     //
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = getDebugCreateInfo();
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = get_debug_create_info();
 
     VkInstanceCreateInfo createInfo = {
         .sType                      = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pApplicationInfo           = &appInfo,
+        .pApplicationInfo           = &app_info,
         .enabledExtensionCount      = extensionCount,
         .ppEnabledExtensionNames    = requiredExtensions,
 #ifdef NDEBUG
         .enabledLayerCount          = 0,
 #else
         .enabledLayerCount          = NUM_VALIDATION_LAYERS,
-        .ppEnabledLayerNames        = debugRequestedValidationLayers,
+        .ppEnabledLayerNames        = debug_requested_validation_layers,
         .pNext                      = (VkDebugUtilsMessengerCreateInfoEXT *) &debugCreateInfo,
 #endif
     };

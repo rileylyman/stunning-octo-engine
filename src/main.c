@@ -8,12 +8,12 @@
 
 
 int main() {
-    initLog();
+    init_log();
 
-    GLFWwindow *window = initWindow();
-    VkInstance instance = initVulkan();
+    GLFWwindow *window = init_window();
+    VkInstance instance = init_vulkan();
 #ifndef NDEBUG
-    VkDebugUtilsMessengerEXT debugMessenger = initVulkanDebugMessenger(instance);
+    VkDebugUtilsMessengerEXT debugMessenger = init_vulkan_debug_messenger(instance);
 #endif
 
     while (!glfwWindowShouldClose(window)) {

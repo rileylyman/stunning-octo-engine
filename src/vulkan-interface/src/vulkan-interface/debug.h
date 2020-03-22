@@ -16,19 +16,19 @@
 #define LOG_LEVEL LOG_TRACE
 
 #define NUM_VALIDATION_LAYERS 1
-const char *debugRequestedValidationLayers[NUM_VALIDATION_LAYERS];
+const char *debug_requested_validation_layers[NUM_VALIDATION_LAYERS];
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_Callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData); 
 
 
-VkDebugUtilsMessengerEXT initVulkanDebugMessenger(VkInstance instance); 
+VkDebugUtilsMessengerEXT init_vulkan_debug_messenger(VkInstance instance); 
 
-VkDebugUtilsMessengerCreateInfoEXT getDebugCreateInfo(); 
+VkDebugUtilsMessengerCreateInfoEXT get_debug_create_info(); 
 
-void initLog();
+void init_log();
 
 #endif

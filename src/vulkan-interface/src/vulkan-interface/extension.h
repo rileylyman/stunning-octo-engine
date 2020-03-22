@@ -22,6 +22,6 @@ void DestroyDebugUtilsMessengerEXT(
         VkDebugUtilsMessengerEXT debugMessenger, 
         const VkAllocationCallbacks* pAllocator); 
 
-const char** getRequiredExtensionNames_FREE();
+const char** get_required_extension_names_FREE();
 
 #endif

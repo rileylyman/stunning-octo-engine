@@ -1,13 +1,21 @@
 #include "language/optional.h"
 
-bool has_value(optional_index_t oit) {
-    return oit.has_value;
+
+struct OptionalIndex optional_index_empty() {
+    return (struct OptionalIndex) {
+        .has_value = false
+    };
 }
 
-uint32_t value(optional_index_t oit) {
-    return oit.value;
+bool has_value(struct OptionalIndex *oit) {
+    return oit->has_value;
 }
 
-void set_value(optional_index_t *oit, uint32_t value) {
+uint32_t value(struct OptionalIndex *oit) {
+    return oit->value;
+}
+
+void set_value(struct OptionalIndex *oit, uint32_t value) {
     oit->value = value;
+    oit->has_value = true;
 }

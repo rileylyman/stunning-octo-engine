@@ -1,13 +1,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct {
+struct OptionalIndex {
     bool has_value;
     uint32_t value;
-} optional_index_t;
+};
 
-bool has_value(optional_index_t oit);
+struct OptionalIndex optional_index_empty();
 
-uint32_t value(optional_index_t oit);
+bool optional_index_has_value(struct OptionalIndex *oit);
 
-void set_value(optional_index_t *oit, uint32_t value);
+uint32_t optional_index_value(struct OptionalIndex *oit);
+
+void optional_index_set_value(struct OptionalIndex *oit, uint32_t value);

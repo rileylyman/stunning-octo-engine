@@ -19,7 +19,7 @@
 #define WINDOW_HEIGHT 600
 #define WINDOW_NAME   "Vulkan"
 
-static VkApplicationInfo appInfo = {
+static VkApplicationInfo app_info = {
     .sType                = VK_STRUCTURE_TYPE_APPLICATION_INFO, 
     .pApplicationName     = "Tiles",
     .applicationVersion   = VK_MAKE_VERSION(1, 0, 0),
@@ -28,7 +28,7 @@ static VkApplicationInfo appInfo = {
     .apiVersion           = VK_API_VERSION_1_0,
 };
 
-GLFWwindow *initWindow();
-VkInstance initVulkan(); 
+GLFWwindow *init_window();
+VkInstance init_vulkan(); 
 
 #endif

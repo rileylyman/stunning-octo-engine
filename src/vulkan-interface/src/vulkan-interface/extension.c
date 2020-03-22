@@ -51,7 +51,7 @@ void DestroyDebugUtilsMessengerEXT(
 // required extensions along with the debug utils extension if
 // validation layers are to be enabled.
 //
-const char** getRequiredExtensionNames_FREE(uint32_t* count) {
+const char** get_required_extension_names_FREE(uint32_t* count) {
     //
     // TODO : This is awful
     //

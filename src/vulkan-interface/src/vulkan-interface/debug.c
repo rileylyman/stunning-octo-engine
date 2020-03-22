@@ -1,6 +1,6 @@
 #include "vulkan-interface/debug.h"
 
-const char *debugRequestedValidationLayers[NUM_VALIDATION_LAYERS] = {
+const char *debug_requested_validation_layers[NUM_VALIDATION_LAYERS] = {
     "VK_LAYER_KHRONOS_validation"
 };
 
@@ -8,7 +8,7 @@ const char *debugRequestedValidationLayers[NUM_VALIDATION_LAYERS] = {
 // This is the debug callback function called by the validation
 // layers
 //
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -37,9 +37,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 // This function is responsible for creating the debug messenger
 // used by this program
 //
-VkDebugUtilsMessengerEXT initVulkanDebugMessenger(VkInstance instance) {
+VkDebugUtilsMessengerEXT init_vulkan_debug_messenger(VkInstance instance) {
 
-    VkDebugUtilsMessengerCreateInfoEXT createInfo = getDebugCreateInfo();
+    VkDebugUtilsMessengerCreateInfoEXT createInfo = get_debug_create_info();
     VkDebugUtilsMessengerEXT debugMessenger;
     if (CreateDebugUtilsMessengerEXT(instance, &createInfo, NULL, &debugMessenger) != VK_SUCCESS) {
         log_fatal("Could not create debug messenger!\n");
@@ -52,7 +52,7 @@ VkDebugUtilsMessengerEXT initVulkanDebugMessenger(VkInstance instance) {
 // Returns the VkDebugUtilsMessengerCreateInfoEXT object containing
 // the desired debug parameters for this module.
 //
-VkDebugUtilsMessengerCreateInfoEXT getDebugCreateInfo() {
+VkDebugUtilsMessengerCreateInfoEXT get_debug_create_info() {
     return (VkDebugUtilsMessengerCreateInfoEXT){
         .sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
         .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT 
@@ -61,7 +61,7 @@ VkDebugUtilsMessengerCreateInfoEXT getDebugCreateInfo() {
         .messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT 
                          | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT 
                          | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = &debugCallback,
+        .pfnUserCallback = &debug_callback,
         .pUserData       = NULL,
     };
 }
@@ -69,6 +69,6 @@ VkDebugUtilsMessengerCreateInfoEXT getDebugCreateInfo() {
 //
 // This function sets the logging level to what was def'd in debug.h
 //
-inline void initLog() {
+inline void init_log() {
     log_set_level(LOG_LEVEL);
 }
