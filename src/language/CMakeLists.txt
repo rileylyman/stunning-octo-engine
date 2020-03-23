@@ -1,9 +1,4 @@
-add_library(
-    language
-    src/language/optional.h
-    src/language/optional.c
-)
+add_subdirectory(src)
 
-target_include_directories(language PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
-
-target_link_libraries(language log)
+enable_testing()
+add_subdirectory(test)

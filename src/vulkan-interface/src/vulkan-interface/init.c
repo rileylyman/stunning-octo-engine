@@ -113,7 +113,7 @@ VkInstance init_vulkan() {
 
 VkSurfaceKHR create_surface(VkInstance instance, GLFWwindow *window) {
     VkSurfaceKHR surface;
-    if (!glfwCreateWindowSurface(instance, window, NULL, &surface)) {
+    if (glfwCreateWindowSurface(instance, window, NULL, &surface) != VK_SUCCESS) {
         log_fatal("Failed to create VkSurface!\n");
         exit(EXIT_FAILURE);
     }

@@ -30,7 +30,7 @@ void interface_physical_device_fill_indices(struct InterfacePhysicalDevice *devi
         if (!optional_index_has_value(&graphics_family_index) && queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             optional_index_set_value(&graphics_family_index, i);
         }
-        bool presentation_supported = false;
+        VkBool32 presentation_supported = VK_FALSE;
         vkGetPhysicalDeviceSurfaceSupportKHR(device->physical_device, i, surface, &presentation_supported);
         if (presentation_supported) {
             optional_index_set_value(&presentation_family_index, i);

@@ -13,6 +13,7 @@ set_property(TARGET VulkanTest PROPERTY C_STANDARD 11)
 add_subdirectory(src/log)
 add_subdirectory(src/language)
 add_subdirectory(src/vulkan-interface)
+add_subdirectory(Unity)
 
 set(COMPILE_FLAGS "-g -DLOG_USE_COLOR -std=c11 ${COMPILE_FLAGS}")
 

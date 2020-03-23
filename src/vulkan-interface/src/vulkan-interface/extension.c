@@ -1,4 +1,5 @@
 #include "vulkan-interface/extension.h"
+#include "language/raw_vector.h"
 
 //
 // Retrieves the vkCreateDebugUtilsMessengerEXT function contained
@@ -52,23 +53,18 @@ void DestroyDebugUtilsMessengerEXT(
 // validation layers are to be enabled.
 //
 const char** get_required_extension_names_FREE(uint32_t* count) {
-    //
-    // TODO : This is awful
-    //
+
     const char **glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(count);
-#ifndef NDEBUG
-    (*count)++;
-#endif
-    const char** extensions = (const char**)malloc(sizeof(const char *) * *count);
-#ifndef NDEBUG
-    (*count)--;
-#endif
-    memcpy(extensions, glfwExtensions, *count * sizeof(const char *));
-#ifndef NDEBUG
-    (*count)++;
-    extensions[*count - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-#endif
-    return extensions;
 
+    struct RawVector extension_names = raw_vector_create(sizeof(char *), *count);
+    raw_vector_extend_back(&extension_names, glfwExtensions, *count);
+
+#ifndef NDEBUG
+    const char *debug_ext = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+    raw_vector_push_back(&extension_names, debug_ext);
+    *count += 1;
+#endif
+
+    return (const char **) extension_names.data;
 }
