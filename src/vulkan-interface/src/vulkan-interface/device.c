@@ -1,21 +1,24 @@
 #include "vulkan-interface/device.h"
 
 //
-// Return whether the given Indices contain all the required values within
-// them. 
+// Return whether the given device contain all the required index values within
+// its optional indices
 //
 bool interface_physical_device_is_complete(struct InterfacePhysicalDevice *ipdev) {
     struct OptionalIndex graphics_family_index = ipdev->graphics_family_index;
-    return optional_index_has_value(&graphics_family_index);
+    struct OptionalIndex presentation_family_index = ipdev->presentation_family_index;
+    return optional_index_has_value(&graphics_family_index) && optional_index_has_value(&presentation_family_index);
 }
 
 //
 // Get the indices of queue families which satisfy certain properties
-// within the list of queue families for this physical device. 
+// within the list of queue families for this physical device. Populates
+// the *device with these indices. 
 //
-void interface_physical_device_fill_indices(struct InterfacePhysicalDevice *device) {
+void interface_physical_device_fill_indices(struct InterfacePhysicalDevice *device, VkSurfaceKHR surface) {
 
     struct OptionalIndex graphics_family_index = optional_index_empty();
+    struct OptionalIndex presentation_family_index = optional_index_empty();
 
     uint32_t queue_family_count;
     vkGetPhysicalDeviceQueueFamilyProperties(device->physical_device, &queue_family_count, NULL);
@@ -24,22 +27,29 @@ void interface_physical_device_fill_indices(struct InterfacePhysicalDevice *devi
     vkGetPhysicalDeviceQueueFamilyProperties(device->physical_device, &queue_family_count, queue_family_properties);
 
     for (uint32_t i = 0; i < queue_family_count; i++) {
-        if (queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        if (!optional_index_has_value(&graphics_family_index) && queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             optional_index_set_value(&graphics_family_index, i);
-            break;
+        }
+        bool presentation_supported = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device->physical_device, i, surface, &presentation_supported);
+        if (presentation_supported) {
+            optional_index_set_value(&presentation_family_index, i);
         }
     }
 
     device->graphics_family_index = graphics_family_index;
+    device->presentation_family_index = presentation_family_index;
 }
 
-bool interface_physical_device_is_device_suitable(struct InterfacePhysicalDevice *ipdev) {
-    VkPhysicalDeviceProperties properties;
-    VkPhysicalDeviceFeatures features;
-    vkGetPhysicalDeviceProperties(ipdev->physical_device, &properties);
-    vkGetPhysicalDeviceFeatures(ipdev->physical_device, &features);
+//
+// Determines if this physical device is suitable by filling its indices
+// and checking if it is then complete.
+//
+bool interface_physical_device_is_device_suitable(struct InterfacePhysicalDevice *ipdev, VkSurfaceKHR surface) {
+    //VkPhysicalDeviceFeatures features;
+    //vkGetPhysicalDeviceFeatures(ipdev->physical_device, &features);
 
-    interface_physical_device_fill_indices(ipdev);
+    interface_physical_device_fill_indices(ipdev, surface);
     
     return interface_physical_device_is_complete(ipdev);
 }
@@ -48,7 +58,7 @@ bool interface_physical_device_is_device_suitable(struct InterfacePhysicalDevice
 // Lists the physical devices available to this instance. Selects the
 // first physical device with the required queue families and features.
 //
-struct InterfacePhysicalDevice pick_physical_device(VkInstance instance) {
+struct InterfacePhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR surface) {
     VkResult int_result;
     struct InterfacePhysicalDevice physical_device = {};
     bool found = false;
@@ -58,12 +68,8 @@ struct InterfacePhysicalDevice pick_physical_device(VkInstance instance) {
     // this instance
     //
     uint32_t device_count = 0;
-    int_result = vkEnumeratePhysicalDevices(instance, &device_count, NULL);
-    if (int_result != VK_SUCCESS) {
-        log_fatal("Could not enumerate physical devices.\n");
-        exit(EXIT_FAILURE);
-    }
-    else if (device_count == 0) {
+    vkEnumeratePhysicalDevices(instance, &device_count, NULL);
+    if (device_count == 0) {
         log_fatal("No devices could be found for instance.\n");
         exit(EXIT_FAILURE);
     }
@@ -74,8 +80,9 @@ struct InterfacePhysicalDevice pick_physical_device(VkInstance instance) {
         struct InterfacePhysicalDevice dev = {
             .physical_device = devices[i],
             .graphics_family_index = optional_index_empty(),
+            .presentation_family_index = optional_index_empty(),
         };
-        if (interface_physical_device_is_device_suitable(&dev)) {
+        if (interface_physical_device_is_device_suitable(&dev, surface)) {
             //
             // For now, we just choose the first physical device which matches
             //

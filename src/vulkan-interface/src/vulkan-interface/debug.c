@@ -30,7 +30,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
         log_debug("%s\n", pCallbackData->pMessage);
     }
 
-    return VK_FALSE; // Should we abort the Vulkan call?
+    return VK_FALSE; // Should we abort the Vulkan call? No. So return false.
 }
 
 //

@@ -11,12 +11,13 @@
 struct InterfacePhysicalDevice {
    VkPhysicalDevice physical_device;
    struct OptionalIndex graphics_family_index; 
+   struct OptionalIndex presentation_family_index;
 };
 
-struct QueueFamilyIndices queue_family_indices_get_indices(); 
+void interface_physical_device_fill_indices(struct InterfacePhysicalDevice *device, VkSurfaceKHR surface); 
 
-struct InterfacePhysicalDevice pick_physical_device(VkInstance instance); 
-bool interface_physical_device_is_device_suitable(struct InterfacePhysicalDevice *device);
+struct InterfacePhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR surface); 
+bool interface_physical_device_is_device_suitable(struct InterfacePhysicalDevice *device, VkSurfaceKHR surface);
 bool interface_physical_device_is_complete(struct InterfacePhysicalDevice *indices);
 VkDevice create_logical_device(struct InterfacePhysicalDevice *pdev);
 

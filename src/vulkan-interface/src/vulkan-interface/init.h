@@ -30,5 +30,6 @@ static VkApplicationInfo app_info = {
 
 GLFWwindow *init_window();
 VkInstance init_vulkan(); 
+VkSurfaceKHR create_surface(VkInstance instance, GLFWwindow *window);
 
 #endif

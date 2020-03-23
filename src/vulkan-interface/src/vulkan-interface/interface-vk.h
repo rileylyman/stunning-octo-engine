@@ -13,9 +13,14 @@ struct VulkanState {
     GLFWwindow *window;
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;
+
+    VkSurfaceKHR surface;
+
     struct InterfacePhysicalDevice physical_device;
     VkDevice logical_device;
+
     VkQueue graphics_queue;
+    VkQueue present_queue;
 };
 
 struct VulkanState vulkan_state_create(); 

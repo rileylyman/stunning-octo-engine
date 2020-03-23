@@ -11,13 +11,14 @@
 #include "log/log.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include "vulkan-interface/extension.h"
 
 #define LOG_LEVEL LOG_TRACE
 
 #define NUM_VALIDATION_LAYERS 1
 const char *debug_requested_validation_layers[NUM_VALIDATION_LAYERS];
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debug_Callback(
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
