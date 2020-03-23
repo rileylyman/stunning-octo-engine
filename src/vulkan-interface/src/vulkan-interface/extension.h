@@ -9,7 +9,7 @@
 #include <string.h>
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
-#include "log/log.h"
+#include "log.h"
 
 VkResult CreateDebugUtilsMessengerEXT(
         VkInstance instance, 

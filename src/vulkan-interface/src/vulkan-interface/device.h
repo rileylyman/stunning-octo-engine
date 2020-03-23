@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include "log/log.h"
+#include "log.h"
 #include <language/optional.h>
 #include "vulkan-interface/debug.h"
 

@@ -1,4 +1,3 @@
 build
-.vscode
 cmake-build-debug
-vulkansdk
+external/vulkansdk

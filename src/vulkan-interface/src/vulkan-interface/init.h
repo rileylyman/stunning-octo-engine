@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
-#include "log/log.h"
+#include "log.h"
 #include "vulkan-interface/debug.h"
 #include "vulkan-interface/extension.h"
 
