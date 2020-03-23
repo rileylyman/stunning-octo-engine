@@ -1,18 +1,20 @@
 add_library(
     vulkan-interface
-    src/vulkan-interface/debug.h
-    src/vulkan-interface/debug.c
-    src/vulkan-interface/device.h
-    src/vulkan-interface/device.c
-    src/vulkan-interface/extension.h
-    src/vulkan-interface/extension.c
-    src/vulkan-interface/init.h
-    src/vulkan-interface/init.c
-    src/vulkan-interface/interface-vk.h
-    src/vulkan-interface/interface-vk.c
+
+    src/debug.c
+    src/device.c
+    src/extension.c
+    src/init.c
+    src/interface-vk.c
+
+    include/vulkan-interface/debug.h
+    include/vulkan-interface/device.h
+    include/vulkan-interface/extension.h
+    include/vulkan-interface/init.h
+    include/vulkan-interface/interface-vk.h
 )
 
-target_include_directories(vulkan-interface PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(vulkan-interface PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 target_include_directories(vulkan-interface PRIVATE "${PROJECT_SOURCE_DIR}/vulkansdk/x86_64/include")
 target_include_directories(vulkan-interface PRIVATE "/usr/local/include")
