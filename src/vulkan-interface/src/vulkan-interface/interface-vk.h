@@ -7,13 +7,15 @@
 #include "vulkan-interface/device.h"
 #include "vulkan-interface/extension.h"
 #include "vulkan-interface/init.h"
+#include "language/optional.h"
 
 struct VulkanState {
     GLFWwindow *window;
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;
-    VkPhysicalDevice physical_device;
+    struct InterfacePhysicalDevice physical_device;
     VkDevice logical_device;
+    VkQueue graphics_queue;
 };
 
 struct VulkanState vulkan_state_create(); 

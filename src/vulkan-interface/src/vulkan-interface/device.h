@@ -6,15 +6,18 @@
 #include <stdlib.h>
 #include "log/log.h"
 #include <language/optional.h>
+#include "vulkan-interface/interface-vk.h"
 
-struct QueueFamilyIndices {
+struct InterfacePhysicalDevice {
+   VkPhysicalDevice physical_device;
    struct OptionalIndex graphics_family_index; 
 };
 
-struct QueueFamilyIndices queue_family_indices_get_indices(VkPhysicalDevice device); 
+struct QueueFamilyIndices queue_family_indices_get_indices(); 
 
-VkPhysicalDevice pick_physical_device(VkInstance instance); 
-bool is_device_suitable(VkPhysicalDevice device);
-bool queue_family_indices_is_complete(struct QueueFamilyIndices *indices);
+struct InterfacePhysicalDevice pick_physical_device(VkInstance instance); 
+bool interface_physical_device_is_device_suitable(struct InterfacePhysicalDevice *device);
+bool interface_physical_device_is_complete(struct InterfacePhysicalDevice *indices);
+VkDevice create_logical_device(struct InterfacePhysicalDevice *pdev);
 
 #endif

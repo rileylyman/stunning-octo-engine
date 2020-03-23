@@ -10,13 +10,19 @@ struct VulkanState vulkan_state_create() {
 #ifndef NDEBUG
     VkDebugUtilsMessengerEXT debug_messenger = init_vulkan_debug_messenger(instance);
 #endif
-    VkPhysicalDevice physical_device = pick_physical_device(instance);
+    struct InterfacePhysicalDevice physical_device = pick_physical_device(instance);
+    VkDevice logical_device = create_logical_device(&physical_device);
+
+    VkQueue graphics_queue; 
+    vkGetDeviceQueue(logical_device, optional_index_get_value(&physical_device.graphics_family_index), 0, &graphics_queue);
 
     return (struct VulkanState) {
         .window = window,
         .instance = instance,
         .debug_messenger = debug_messenger,
         .physical_device = physical_device,
+        .logical_device = logical_device,
+        .graphics_queue = graphics_queue,
     };
 } 
 
@@ -25,6 +31,7 @@ struct VulkanState vulkan_state_create() {
 //
 void vulkan_state_destroy(struct VulkanState *state) {
 
+    vkDestroyDevice(state->logical_device, NULL);
 #ifndef NDEBUG
     DestroyDebugUtilsMessengerEXT(state->instance, state->debug_messenger, NULL);
 #endif
