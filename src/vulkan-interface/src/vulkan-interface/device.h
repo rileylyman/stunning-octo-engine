@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "log/log.h"
 #include <language/optional.h>
-#include "vulkan-interface/interface-vk.h"
+#include "vulkan-interface/debug.h"
 
 struct InterfacePhysicalDevice {
    VkPhysicalDevice physical_device;
