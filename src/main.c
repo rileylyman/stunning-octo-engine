@@ -10,21 +10,12 @@
 int main() {
     init_log();
 
-    GLFWwindow *window = init_window();
-    VkInstance instance = init_vulkan();
-#ifndef NDEBUG
-    VkDebugUtilsMessengerEXT debugMessenger = init_vulkan_debug_messenger(instance);
-#endif
+    struct VulkanState vulkan_state = vulkan_state_create();
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(vulkan_state.window)) {
         glfwPollEvents();
     }
 
-#ifndef NDEBUG
-    DestroyDebugUtilsMessengerEXT(instance, debugMessenger, NULL);
-#endif
-    vkDestroyInstance(instance, NULL);
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    vulkan_state_destroy(&vulkan_state);
     return EXIT_SUCCESS;
 }

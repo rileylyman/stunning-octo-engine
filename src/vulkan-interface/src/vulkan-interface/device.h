@@ -2,6 +2,9 @@
 #define VULKAN_DEVICE_H
 
 #include <vulkan/vulkan.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include "log/log.h"
 #include <language/optional.h>
 
 struct QueueFamilyIndices {

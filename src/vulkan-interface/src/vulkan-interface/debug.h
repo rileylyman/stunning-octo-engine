@@ -8,7 +8,7 @@
 #define VULKAN_DEBUG_H
 
 #include <vulkan/vulkan.h>
-#include "vulkan-interface/extension.h"
+#include "vulkan-interface/interface-vk.h"
 #include "log/log.h"
 #include <stdlib.h>
 #include <stdbool.h>

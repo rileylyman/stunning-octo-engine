@@ -8,12 +8,13 @@ add_executable(VulkanTest
 )
 
 set_target_properties(VulkanTest PROPERTIES LINKER_LANGUAGE C)
+set_property(TARGET VulkanTest PROPERTY C_STANDARD 11)
 
 add_subdirectory(src/log)
 add_subdirectory(src/language)
 add_subdirectory(src/vulkan-interface)
 
-set(COMPILE_FLAGS "-g -DLOG_USE_COLOR -std=c99 ${COMPILE_FLAGS}")
+set(COMPILE_FLAGS "-g -DLOG_USE_COLOR -std=c11 ${COMPILE_FLAGS}")
 
 set(CMAKE_BUILD_TYPE Debug)
 

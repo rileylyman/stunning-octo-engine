@@ -7,15 +7,15 @@ struct OptionalIndex optional_index_empty() {
     };
 }
 
-bool has_value(struct OptionalIndex *oit) {
+bool optional_index_has_value(struct OptionalIndex *oit) {
     return oit->has_value;
 }
 
-uint32_t value(struct OptionalIndex *oit) {
+uint32_t optional_index_get_value(struct OptionalIndex *oit) {
     return oit->value;
 }
 
-void set_value(struct OptionalIndex *oit, uint32_t value) {
+void optional_index_set_value(struct OptionalIndex *oit, uint32_t value) {
     oit->value = value;
     oit->has_value = true;
 }

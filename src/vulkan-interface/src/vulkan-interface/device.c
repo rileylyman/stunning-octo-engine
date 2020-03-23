@@ -1,15 +1,12 @@
-#include <stdbool.h>
-#include <stdlib.h>
-#include "log/log.h"
 #include "vulkan-interface/device.h"
-#include "language/optional.h"
 
 //
 // Return whether the given Indices contain all the required values within
 // them. 
 //
 bool queue_family_indices_is_complete(struct QueueFamilyIndices *indices) {
-    return optional_index_has_value(&indices->graphics_family_index);
+    struct OptionalIndex graphics_family_index = indices->graphics_family_index;
+    return optional_index_has_value(&graphics_family_index);
 }
 
 //

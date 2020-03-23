@@ -12,8 +12,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include "log/log.h"
-#include "vulkan-interface/debug.h"
-#include "vulkan-interface/extension.h"
+#include "vulkan-interface/interface-vk.h"
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600

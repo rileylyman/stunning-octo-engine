@@ -2,6 +2,8 @@ add_library(
     vulkan-interface
     src/vulkan-interface/debug.h
     src/vulkan-interface/debug.c
+    src/vulkan-interface/device.h
+    src/vulkan-interface/device.c
     src/vulkan-interface/extension.h
     src/vulkan-interface/extension.c
     src/vulkan-interface/init.h
