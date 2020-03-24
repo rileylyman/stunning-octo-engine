@@ -9,6 +9,7 @@
 #include <string.h>
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include "language/raw_vector.h"
 #include "log.h"
 
 VkResult CreateDebugUtilsMessengerEXT(
@@ -22,6 +23,6 @@ void DestroyDebugUtilsMessengerEXT(
         VkDebugUtilsMessengerEXT debugMessenger, 
         const VkAllocationCallbacks* pAllocator); 
 
-const char** get_required_extension_names_FREE();
+struct RawVector get_required_extension_names_FREE();
 
 #endif

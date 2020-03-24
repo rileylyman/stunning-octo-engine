@@ -8,6 +8,8 @@ add_library(
     include/language/raw_vector.h
 )
 
+set(CMAKE_BUILD_TYPE Debug)
+
 target_include_directories(language PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(language log)
 

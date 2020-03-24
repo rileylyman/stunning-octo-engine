@@ -27,7 +27,7 @@
             "name": "Run Engine",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/VulkanTest",
+            "program": "${workspaceFolder}/build/src/VulkanTest",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

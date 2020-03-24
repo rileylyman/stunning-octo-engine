@@ -26,8 +26,7 @@ VkInstance init_vulkan() {
     //
     // Checking for extensions
     //
-    uint32_t extensionCount;
-    const char** requiredExtensions = get_required_extension_names_FREE(&extensionCount);
+    struct RawVector requiredExtensions = get_required_extension_names_FREE();
 
     uint32_t totalExtensionCount;
     vkEnumerateInstanceExtensionProperties(NULL, &totalExtensionCount, NULL);
@@ -39,8 +38,8 @@ VkInstance init_vulkan() {
         printf("\t%s\n", extensions[i].extensionName);
     }
     log_trace("\nGLFW Requested extensions:");
-    for (int i = 0; i < extensionCount; i++) {
-        printf("\t%s\n", requiredExtensions[i]);
+    for (int i = 0; i < raw_vector_size(&requiredExtensions); i++) {
+        printf("\t%s\n", *(char **)raw_vector_get_ptr(&requiredExtensions, i));
     }
 
     //
@@ -88,8 +87,8 @@ VkInstance init_vulkan() {
     VkInstanceCreateInfo createInfo = {
         .sType                      = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo           = &app_info,
-        .enabledExtensionCount      = extensionCount,
-        .ppEnabledExtensionNames    = requiredExtensions,
+        .enabledExtensionCount      = raw_vector_size(&requiredExtensions),
+        .ppEnabledExtensionNames    = (const char**)requiredExtensions.data,
 #ifdef NDEBUG
         .enabledLayerCount          = 0,
 #else
@@ -107,7 +106,7 @@ VkInstance init_vulkan() {
         exit(EXIT_FAILURE);
     }
 
-    free(requiredExtensions);
+    raw_vector_destroy(&requiredExtensions);
     return instance;
 }
 

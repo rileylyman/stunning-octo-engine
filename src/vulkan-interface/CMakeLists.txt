@@ -14,6 +14,8 @@ add_library(
     include/vulkan-interface/interface-vk.h
 )
 
+set (CMAKE_BUILD_TYPE Debug)
+
 target_include_directories(vulkan-interface PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 target_include_directories(vulkan-interface PRIVATE "${PROJECT_SOURCE_DIR}/vulkansdk/x86_64/include")

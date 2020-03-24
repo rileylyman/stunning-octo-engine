@@ -23,6 +23,9 @@ struct RawVector raw_vector_create(size_t element_size_in_bytes, size_t initial_
     };
 }
 
+//
+// Get the number of elements contained in this vector.
+//
 size_t raw_vector_size(struct RawVector *vector) {
     if (vector->data == NULL) {
         log_fatal("Cannot get size on destroyed vector\n");
