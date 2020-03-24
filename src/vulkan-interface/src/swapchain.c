@@ -130,3 +130,47 @@ VkSwapchainKHR create_swapchain(
     *fill_extent = create_info.imageExtent;
     return swapchain;
 }
+
+//
+// Create an image view for each image within rvec_VkImage
+//
+struct RawVector create_swapchain_image_views(VkDevice device, struct RawVector rvec_VkImage, VkFormat format) {
+
+    struct RawVector image_views_VkImageView = raw_vector_create(sizeof(VkImageView), raw_vector_size(&rvec_VkImage));
+    VkImageView blank_view;
+
+    for (int i = 0; i < raw_vector_size(&rvec_VkImage); i++) {
+
+        VkImageViewCreateInfo ci = {};
+        ci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        ci.image = *(VkImage *)raw_vector_get_ptr(&rvec_VkImage, i);
+        ci.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        ci.format = format;
+        ci.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ci.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ci.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ci.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        ci.subresourceRange.baseMipLevel = 0;
+        ci.subresourceRange.levelCount = 1;
+        ci.subresourceRange.baseArrayLayer = 0;
+        ci.subresourceRange.layerCount = 1;
+
+        //
+        // For each image view create info we make, we push back 
+        // a blank image view into our image views vector. This is
+        // so that on the next line, when it comes time to call the vulkan
+        // constructor for the image view, we can get a ptr reference
+        // into the vector into which the constructor can copy the
+        // new image view.
+        //
+        raw_vector_push_back(&image_views_VkImageView, &blank_view);
+        if (vkCreateImageView(device, &ci, NULL, (VkImageView *)raw_vector_get_ptr(&image_views_VkImageView, i)) != VK_SUCCESS) {
+            log_fatal("Failed to create image view %i\n", i);
+            exit(EXIT_FAILURE);
+        }
+        log_trace("Created image view %i\n", i);
+    }
+
+    return image_views_VkImageView;
+}

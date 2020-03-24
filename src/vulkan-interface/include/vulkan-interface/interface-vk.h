@@ -28,7 +28,8 @@ struct VulkanState {
     VkFormat swapchain_format;
     VkExtent2D swapchain_extent;
 
-    struct RawVector swapchain_images;
+    struct RawVector swapchain_images_VkImage;
+    struct RawVector swapchain_image_views_VkImageView;
 };
 
 struct VulkanState vulkan_state_create(); 
