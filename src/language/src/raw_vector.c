@@ -17,18 +17,30 @@ struct RawVector raw_vector_create(size_t element_size_in_bytes, size_t initial_
     }
     return (struct RawVector) {
         .data = malloc(initial_capacity * element_size_in_bytes),
-        .data_size = initial_capacity * element_size_in_bytes,
+        .data_size_in_bytes = initial_capacity * element_size_in_bytes,
         .element_size_in_bytes = element_size_in_bytes,
-        .count = 0
+        .count_in_elements = 0
     };
+}
+
+size_t raw_vector_size(struct RawVector *vector) {
+    if (vector->data == NULL) {
+        log_fatal("Cannot get size on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
+    return vector->count_in_elements;
 }
 
 //
 // Get a pointer to the first byte of the desired element within the raw vector
 //
 uint8_t *raw_vector_get_ptr(struct RawVector *vector, size_t index) {
+    if (vector->data == NULL) {
+        log_fatal("Cannot get index on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
     log_trace("Getting index %u from raw_vector\n", index);
-    if (index >= vector->count) {
+    if (index >= vector->count_in_elements) {
         log_fatal("Attempted to get index of raw_vector greater than its count.\n");
         exit(EXIT_FAILURE);
     }
@@ -41,8 +53,12 @@ uint8_t *raw_vector_get_ptr(struct RawVector *vector, size_t index) {
 // WARNING: make sure the value buffer contains at least element_size_in_bytes bytes
 //
 void raw_vector_set(struct RawVector *vector, size_t index, void *value) {
+    if (vector->data == NULL) {
+        log_fatal("Cannot set index on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
     log_trace("Setting index %u in raw_vector\n", index);
-    if (index >= vector->count) {
+    if (index >= vector->count_in_elements) {
         log_fatal("Attempted to get index of raw_vector greater than its count.\n");
         exit(EXIT_FAILURE);
     }
@@ -53,19 +69,27 @@ void raw_vector_set(struct RawVector *vector, size_t index, void *value) {
 // Resizes the raw vector
 //
 void resize(struct RawVector *vector, size_t new_size) {
+    if (vector->data == NULL) {
+        log_fatal("Cannot resize on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
     uint8_t *new_data = realloc(vector->data, new_size);
     if (new_data == NULL) {
         log_fatal("Could not call realloc in vector resize.\n");
         exit(EXIT_FAILURE);
     }
     vector->data = new_data;
-    vector->data_size = new_size;
+    vector->data_size_in_bytes = new_size;
 }
 
 //
 // Pushes a new element onto the back of the vector.
 //
 void raw_vector_push_back(struct RawVector *vector, void *value) {
+    if (vector->data == NULL) {
+        log_fatal("Cannot push back on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
     raw_vector_extend_back(vector, value, 1);
 }
 
@@ -73,27 +97,35 @@ void raw_vector_push_back(struct RawVector *vector, void *value) {
 // Pushes n elements contained in the buffer value onto the back of vector.
 //
 void raw_vector_extend_back(struct RawVector *vector, void *value, size_t n) {
-    size_t desired_size = (vector->count + n) * vector->element_size_in_bytes;
-    if (desired_size > vector->data_size) {
-        size_t new_size = vector->data_size * 2;
+    if (vector->data == NULL) {
+        log_fatal("Cannot extend on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
+    size_t desired_size = (vector->count_in_elements + n) * vector->element_size_in_bytes;
+    if (desired_size > vector->data_size_in_bytes) {
+        size_t new_size = vector->data_size_in_bytes * 2;
         while (new_size < desired_size) new_size *= 2;
         resize(vector, new_size);
     }
-    memcpy(vector->data + vector->count * vector->element_size_in_bytes, value, n * vector->element_size_in_bytes);
-    vector->count += n;
+    memcpy(vector->data + vector->count_in_elements * vector->element_size_in_bytes, value, n * vector->element_size_in_bytes);
+    vector->count_in_elements += n;
 }
 
 //
 // Pops the back element of the vector.
 //
 void raw_vector_pop_back(struct RawVector *vector) {
-    if (vector->count == 0) {
+    if (vector->data == NULL) {
+        log_fatal("Cannot pop back on destroyed vector\n");
+        exit(EXIT_FAILURE);
+    }
+    if (vector->count_in_elements == 0) {
         log_fatal("Could not pop_back on an empty vector");
         exit(EXIT_FAILURE);
     }
-    vector->count -= 1;
-    if (vector->count * vector->element_size_in_bytes < vector->data_size / 2) {
-        resize(vector, vector->data_size / 2);
+    vector->count_in_elements -= 1;
+    if (vector->count_in_elements * vector->element_size_in_bytes < vector->data_size_in_bytes / 2) {
+        resize(vector, vector->data_size_in_bytes / 2);
     }
 }
 
@@ -101,14 +133,20 @@ void raw_vector_pop_back(struct RawVector *vector) {
 // Clears all data within the vector
 //
 void raw_vector_clear(struct RawVector *vector) {
-    vector->data = realloc(vector->data, 0);
-    vector->count = 0;
-    vector->data_size = 0;
+    if (vector->data == NULL) {
+        log_fatal("Cannot clear a destroyed vector!\n");
+        exit(EXIT_FAILURE);
+    }
+    vector->data = realloc(vector->data, vector->element_size_in_bytes);
+    vector->count_in_elements = 0;
+    vector->data_size_in_bytes = vector->element_size_in_bytes;
 }
 
 //
 // Destroys the vector
 //
 void raw_vector_destroy(struct RawVector *vector) {
-    raw_vector_clear(vector);
+    free(vector->data);
+    vector->data = NULL;
+    vector->count_in_elements = 0;
 }

@@ -3,6 +3,21 @@
     "files.associations": {
         "device.h": "c",
         "optional.h": "c",
-        "vulkan.h": "c"
+        "vulkan.h": "c",
+        "*.ipp": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "condition_variable": "cpp",
+        "algorithm": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "mutex": "cpp",
+        "shared_mutex": "cpp",
+        "streambuf": "cpp",
+        "thread": "cpp",
+        "*.def": "cpp"
     }
 }
