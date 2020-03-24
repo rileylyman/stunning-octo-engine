@@ -1,9 +1,11 @@
 add_library(
     language
 
+    src/math.c
     src/optional.c
     src/raw_vector.c
 
+    include/language/math.h
     include/language/optional.h
     include/language/raw_vector.h
 )

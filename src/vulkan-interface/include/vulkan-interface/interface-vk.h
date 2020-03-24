@@ -7,7 +7,9 @@
 #include "vulkan-interface/device.h"
 #include "vulkan-interface/extension.h"
 #include "vulkan-interface/init.h"
+#include "vulkan-interface/swapchain.h"
 #include "language/optional.h"
+#include "language/raw_vector.h"
 
 struct VulkanState {
     GLFWwindow *window;
@@ -20,7 +22,13 @@ struct VulkanState {
     VkDevice logical_device;
 
     VkQueue graphics_queue;
-    VkQueue present_queue;
+    VkQueue presentation_queue;
+
+    VkSwapchainKHR swapchain;
+    VkFormat swapchain_format;
+    VkExtent2D swapchain_extent;
+
+    struct RawVector swapchain_images;
 };
 
 struct VulkanState vulkan_state_create(); 

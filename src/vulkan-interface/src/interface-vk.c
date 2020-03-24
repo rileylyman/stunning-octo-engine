@@ -11,16 +11,34 @@ struct VulkanState vulkan_state_create() {
 #ifndef NDEBUG
     VkDebugUtilsMessengerEXT debug_messenger = init_vulkan_debug_messenger(instance);
 #endif
-    //
-    // Must create VkSurfaceKHR __before__ the physical device selection occurs.
-    // The surface influences device selection.
-    //
     VkSurfaceKHR surface = create_surface(instance, window);
     struct InterfacePhysicalDevice physical_device = pick_physical_device(instance, surface);
     VkDevice logical_device = create_logical_device(&physical_device);
 
-    VkQueue graphics_queue; 
+    VkQueue graphics_queue, presentation_queue; 
     vkGetDeviceQueue(logical_device, optional_index_get_value(&physical_device.graphics_family_index), 0, &graphics_queue);
+    vkGetDeviceQueue(logical_device, optional_index_get_value(&physical_device.presentation_family_index), 0, &presentation_queue);
+
+    VkFormat swapchain_format;
+    VkExtent2D swapchain_extent;
+
+    VkSwapchainKHR swapchain = create_swapchain(
+        logical_device, 
+        physical_device.physical_device,
+        surface,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        optional_index_get_value(&physical_device.graphics_family_index),
+        optional_index_get_value(&physical_device.presentation_family_index),
+        &swapchain_format,
+        &swapchain_extent
+        );
+
+    uint32_t image_count;
+    vkGetSwapchainImagesKHR(logical_device, swapchain, &image_count, NULL);
+    VkImage images[image_count];
+    struct RawVector swapchain_images = raw_vector_create(sizeof(VkImage), image_count);
+    raw_vector_extend_back(&swapchain_images, images, image_count);
 
     return (struct VulkanState) {
         .window = window,
@@ -30,8 +48,16 @@ struct VulkanState vulkan_state_create() {
 #endif
         .physical_device = physical_device,
         .logical_device = logical_device,
+
         .graphics_queue = graphics_queue,
+        .presentation_queue = presentation_queue,
+
         .surface = surface,
+
+        .swapchain = swapchain,
+        .swapchain_format = swapchain_format,
+        .swapchain_extent = swapchain_extent,
+        .swapchain_images = swapchain_images,
     };
 } 
 
@@ -40,6 +66,8 @@ struct VulkanState vulkan_state_create() {
 //
 void vulkan_state_destroy(struct VulkanState *state) {
 
+    raw_vector_destroy(&state->swapchain_images);
+    vkDestroySwapchainKHR(state->logical_device, state->swapchain, NULL);
     vkDestroySurfaceKHR(state->instance, state->surface, NULL);
     vkDestroyDevice(state->logical_device, NULL);
 #ifndef NDEBUG

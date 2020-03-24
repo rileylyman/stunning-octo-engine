@@ -6,12 +6,14 @@ add_library(
     src/extension.c
     src/init.c
     src/interface-vk.c
+    src/swapchain.c
 
     include/vulkan-interface/debug.h
     include/vulkan-interface/device.h
     include/vulkan-interface/extension.h
     include/vulkan-interface/init.h
     include/vulkan-interface/interface-vk.h
+    include/vulkan-interface/swapchain.h
 )
 
 set (CMAKE_BUILD_TYPE Debug)
