@@ -30,6 +30,9 @@ struct VulkanState {
 
     struct RawVector swapchain_images_VkImage;
     struct RawVector swapchain_image_views_VkImageView;
+
+    VkPipeline pipeline;
+    VkPipelineLayout pipeline_layout;
 };
 
 struct VulkanState vulkan_state_create(); 
