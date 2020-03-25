@@ -45,8 +45,10 @@ struct VulkanState vulkan_state_create() {
     struct RawVector swapchain_image_views_VkImageView = create_swapchain_image_views(
         logical_device, swapchain_images_VkImage, swapchain_format);
 
+    VkRenderPass renderpass = create_render_pass(logical_device, swapchain_format);
+
     VkPipelineLayout pipeline_layout;
-    VkPipeline pipeline = create_graphics_pipeline(logical_device, swapchain_extent, &pipeline_layout);
+    VkPipeline pipeline = create_graphics_pipeline(logical_device, swapchain_extent, renderpass, &pipeline_layout);
 
     return (struct VulkanState) {
         .window = window,
@@ -67,6 +69,8 @@ struct VulkanState vulkan_state_create() {
         .swapchain_extent = swapchain_extent,
         .swapchain_images_VkImage = swapchain_images_VkImage,
         .swapchain_image_views_VkImageView = swapchain_image_views_VkImageView,
+
+        .renderpass = renderpass,
         
         .pipeline = pipeline,
         .pipeline_layout = pipeline_layout, 
@@ -80,6 +84,7 @@ void vulkan_state_destroy(struct VulkanState *state) {
 
     vkDestroyPipelineLayout(state->logical_device, state->pipeline_layout, NULL);
     vkDestroyPipeline(state->logical_device, state->pipeline, NULL);
+    vkDestroyRenderPass(state->logical_device, state->renderpass, NULL);
     for (int i = 0; i < raw_vector_size(&state->swapchain_image_views_VkImageView); i++) {
         vkDestroyImageView(
             state->logical_device, 

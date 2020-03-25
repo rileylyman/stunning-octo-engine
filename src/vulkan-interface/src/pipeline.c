@@ -23,16 +23,53 @@ VkShaderModule create_shader_module(VkDevice device, uint8_t *bytecode_buffer, s
     return module;
 }
 
+VkRenderPass create_render_pass(VkDevice device, VkFormat image_format) {
+    
+    VkAttachmentDescription color_attachment = {};
+    color_attachment.format = image_format;
+    color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference attach_ref = {};
+    attach_ref.attachment = 0;
+    attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &attach_ref;
+
+    VkRenderPassCreateInfo renderpass_ci = {};
+    renderpass_ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderpass_ci.attachmentCount = 1;
+    renderpass_ci.pAttachments = &color_attachment;
+    renderpass_ci.subpassCount = 1;
+    renderpass_ci.pSubpasses = &subpass;
+
+    VkRenderPass renderpass;
+    if (vkCreateRenderPass(device, &renderpass_ci, NULL, &renderpass) != VK_SUCCESS) {
+        log_fatal("Failed to create render pass");
+        exit(EXIT_FAILURE);
+    }
+
+    return renderpass;
+}
+
 //
 // Creates a graphics pipeline for the given logical device
 //
-VkPipeline create_graphics_pipeline(VkDevice device, VkExtent2D sc_extent, VkPipelineLayout *layout) {
+VkPipeline create_graphics_pipeline(VkDevice device, VkExtent2D sc_extent, VkRenderPass renderpass, VkPipelineLayout *layout) {
     size_t vert_size, frag_size;
     uint8_t *vert = read_binary_file_FREE(VERT_SHADER, &vert_size);
     uint8_t *frag = read_binary_file_FREE(FRAG_SHADER, &frag_size);
 
-    log_trace("Size of vertex buffer: %u", vert_size);
-    log_trace("Size of frag buffer: %u", frag_size);
+    log_trace("Size of vertex buffer: %u\n", vert_size);
+    log_trace("Size of frag buffer: %u\n", frag_size);
 
     VkShaderModule vertex_module = create_shader_module(device, vert, vert_size);
     VkShaderModule fragment_module = create_shader_module(device, frag, frag_size);
@@ -54,10 +91,10 @@ VkPipeline create_graphics_pipeline(VkDevice device, VkExtent2D sc_extent, VkPip
     // Fragment shader programmable stage
     //
     VkPipelineShaderStageCreateInfo fragment_shader_stage_ci = {};
-    vertex_shader_stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertex_shader_stage_ci.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    vertex_shader_stage_ci.pName = "main";
-    vertex_shader_stage_ci.module = fragment_module;
+    fragment_shader_stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragment_shader_stage_ci.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragment_shader_stage_ci.pName = "main";
+    fragment_shader_stage_ci.module = fragment_module;
 
     //
     // Vertex input data specification 
@@ -80,7 +117,7 @@ VkPipeline create_graphics_pipeline(VkDevice device, VkExtent2D sc_extent, VkPip
     //
     VkPipelineRasterizationStateCreateInfo rast_ci = {};
     rast_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rast_ci.depthClampEnable = VK_TRUE; // TODO: this should error since depth clamp feature not enabled
+    rast_ci.depthClampEnable = VK_FALSE; // TODO: This is good for shadow mapping
     rast_ci.rasterizerDiscardEnable = VK_FALSE;
     rast_ci.polygonMode = VK_POLYGON_MODE_FILL;
     rast_ci.lineWidth = 1.0f;
@@ -184,10 +221,39 @@ VkPipeline create_graphics_pipeline(VkDevice device, VkExtent2D sc_extent, VkPip
     viewport_ci.scissorCount = 1;
     viewport_ci.pScissors = &scissor;
 
+    //
+    // Put all of this together to create the pipeline!
+    //
+    VkGraphicsPipelineCreateInfo pipeline_ci = {};
+    pipeline_ci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipeline_ci.stageCount = 2;
+    pipeline_ci.pStages = (VkPipelineShaderStageCreateInfo[]){vertex_shader_stage_ci, fragment_shader_stage_ci};
+    pipeline_ci.pVertexInputState = &vertex_input_ci;
+    pipeline_ci.pInputAssemblyState = &input_assembly_ci;
+    pipeline_ci.pViewportState = &viewport_ci;
+    pipeline_ci.pRasterizationState = &rast_ci;
+    pipeline_ci.pMultisampleState = &ms_ci;
+    pipeline_ci.pDepthStencilState = NULL;
+    pipeline_ci.pColorBlendState = &colorBlending;
+    pipeline_ci.pDynamicState = NULL;
+    pipeline_ci.layout = *layout;
+    pipeline_ci.renderPass = renderpass;
+    pipeline_ci.subpass = 0;
+    pipeline_ci.basePipelineHandle = VK_NULL_HANDLE; // TODO: if you want to use this feature, enable the flag 
+    pipeline_ci.basePipelineIndex = -1;
 
-    
+    VkPipeline pipeline;
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &pipeline) != VK_SUCCESS) {
+        log_fatal("Failed to create pipeline!\n");
+        exit(EXIT_FAILURE);
+    }
 
-
+    //
+    // We no longer need the shader modules
+    //
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, fragment_module, NULL);
+
+    log_trace("Created graphics pipeline!\n");
+    return pipeline;
 }

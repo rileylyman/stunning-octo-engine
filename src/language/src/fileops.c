@@ -7,7 +7,7 @@
 // and returns it.
 //
 uint8_t *read_binary_file_FREE(const char *filename, size_t *size) {
-    FILE *file = fopen(filename, "r");
+    FILE *file = fopen(filename, "rb");
     if (file == NULL) {
         log_fatal("Could not open file %s\n", filename);
         exit(EXIT_FAILURE);
@@ -18,9 +18,9 @@ uint8_t *read_binary_file_FREE(const char *filename, size_t *size) {
     //
     // Make sure that the buffer is aligned to uint32_t
     //
-    *size = ((*size + 1) * sizeof(uint32_t)) / sizeof(uint32_t);
+    *size = ((*size / sizeof(uint32_t)) /*+ 1*/) * sizeof(uint32_t);
 
-    uint8_t *buffer = malloc(sizeof(uint8_t) * *size);
+    uint8_t *buffer = calloc(1, sizeof(uint8_t) * *size);
     if (buffer == NULL) {
         log_fatal("Could not malloc buffer!\n");
         exit(EXIT_FAILURE);
