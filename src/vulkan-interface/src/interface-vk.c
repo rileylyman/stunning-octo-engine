@@ -52,6 +52,15 @@ struct VulkanState vulkan_state_create() {
 
     struct RawVector framebuffers = create_framebuffers(logical_device, renderpass, swapchain_extent, &swapchain_image_views_VkImageView);
 
+    VkCommandPool pool = create_command_pool(logical_device, optional_index_get_value(&physical_device.graphics_family_index));
+    struct RawVector command_buffers = create_command_buffers(
+        logical_device,
+        pool,
+        renderpass,
+        pipeline,
+        &framebuffers,
+        swapchain_extent);
+
     return (struct VulkanState) {
         .window = window,
         .instance = instance,
@@ -78,6 +87,9 @@ struct VulkanState vulkan_state_create() {
         .pipeline_layout = pipeline_layout, 
 
         .framebuffers_VkFramebuffer = framebuffers,
+
+        .command_pool = pool,
+        .command_buffers = command_buffers,
     };
 } 
 
@@ -86,6 +98,7 @@ struct VulkanState vulkan_state_create() {
 //
 void vulkan_state_destroy(struct VulkanState *state) {
 
+    vkDestroyCommandPool(state->logical_device, state->command_pool, NULL);
     for (int i = 0; i < raw_vector_size(&state->framebuffers_VkFramebuffer); i++) {
         vkDestroyFramebuffer(
             state->logical_device, 

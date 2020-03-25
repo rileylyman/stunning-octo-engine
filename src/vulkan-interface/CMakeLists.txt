@@ -1,6 +1,7 @@
 add_library(
     vulkan-interface
 
+    src/command.c
     src/debug.c
     src/device.c
     src/extension.c
@@ -9,6 +10,7 @@ add_library(
     src/pipeline.c
     src/swapchain.c
 
+    include/vulkan-interface/command.h
     include/vulkan-interface/debug.h
     include/vulkan-interface/device.h
     include/vulkan-interface/extension.h

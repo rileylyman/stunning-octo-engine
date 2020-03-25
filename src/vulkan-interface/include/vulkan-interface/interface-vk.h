@@ -8,6 +8,7 @@
 #include "vulkan-interface/extension.h"
 #include "vulkan-interface/init.h"
 #include "vulkan-interface/swapchain.h"
+#include "vulkan-interface/command.h"
 #include "language/optional.h"
 #include "language/raw_vector.h"
 
@@ -37,6 +38,9 @@ struct VulkanState {
     VkPipelineLayout pipeline_layout;
 
     struct RawVector framebuffers_VkFramebuffer;
+
+    VkCommandPool command_pool;
+    struct RawVector command_buffers;
 };
 
 struct VulkanState vulkan_state_create(); 
