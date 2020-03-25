@@ -1,3 +1,4 @@
+#include <language/raw_vector.h>
 #include <language/fileops.h>
 #include "vulkan-interface/pipeline.h"
 #include "log.h"
@@ -23,6 +24,44 @@ VkShaderModule create_shader_module(VkDevice device, uint8_t *bytecode_buffer, s
     return module;
 }
 
+//
+// Creates a framebuffer for each image of the swapchain. Each framebuffer
+// is basically an array of image views compatible with the given renderpass.
+// Framebuffers can only be used with renderpasses they are compatible with.
+// Roughly, this means same number and type of attachments.
+//
+struct RawVector create_framebuffers(VkDevice device, VkRenderPass renderpass, VkExtent2D extent, struct RawVector *rvec_VkImageView) {
+    struct RawVector rvec_VkFramebuffer = raw_vector_create(sizeof(VkFramebuffer), raw_vector_size(rvec_VkImageView));
+    for (int i = 0; i < raw_vector_size(rvec_VkImageView); i++) {
+        VkImageView attachments[1] = { *(VkImageView *)raw_vector_get_ptr(rvec_VkImageView, i) };
+
+        VkFramebufferCreateInfo framebuffer_ci = {};
+        framebuffer_ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_ci.renderPass = renderpass;
+        framebuffer_ci.attachmentCount = 1;
+        framebuffer_ci.pAttachments = attachments;
+        framebuffer_ci.width = extent.width;
+        framebuffer_ci.height = extent.height;
+        framebuffer_ci.layers = 1;
+
+        VkFramebuffer framebuffer;
+        if (vkCreateFramebuffer(device, &framebuffer_ci, NULL, &framebuffer) != VK_SUCCESS) {
+            log_fatal("Could not create framebuffer!\n");
+            exit(EXIT_FAILURE);
+        }
+        raw_vector_push_back(&rvec_VkFramebuffer, &framebuffer);
+    }
+    log_trace("Created framebuffers!\n");
+    return rvec_VkFramebuffer;
+}
+
+//
+// Creates a render pass. A render pass contains a number of subpasses
+// and references an array of attachment descriptions. Each attachment
+// description describes how a certain attachment to the pipeline
+// (an image view) will be laid out and used. Each subpass references
+// some number of these attachments.
+//
 VkRenderPass create_render_pass(VkDevice device, VkFormat image_format) {
     
     VkAttachmentDescription color_attachment = {};

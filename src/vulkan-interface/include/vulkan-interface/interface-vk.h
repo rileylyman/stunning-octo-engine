@@ -35,6 +35,8 @@ struct VulkanState {
 
     VkPipeline pipeline;
     VkPipelineLayout pipeline_layout;
+
+    struct RawVector framebuffers_VkFramebuffer;
 };
 
 struct VulkanState vulkan_state_create(); 

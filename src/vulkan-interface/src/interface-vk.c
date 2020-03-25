@@ -50,6 +50,8 @@ struct VulkanState vulkan_state_create() {
     VkPipelineLayout pipeline_layout;
     VkPipeline pipeline = create_graphics_pipeline(logical_device, swapchain_extent, renderpass, &pipeline_layout);
 
+    struct RawVector framebuffers = create_framebuffers(logical_device, renderpass, swapchain_extent, &swapchain_image_views_VkImageView);
+
     return (struct VulkanState) {
         .window = window,
         .instance = instance,
@@ -74,6 +76,8 @@ struct VulkanState vulkan_state_create() {
         
         .pipeline = pipeline,
         .pipeline_layout = pipeline_layout, 
+
+        .framebuffers_VkFramebuffer = framebuffers,
     };
 } 
 
@@ -82,6 +86,12 @@ struct VulkanState vulkan_state_create() {
 //
 void vulkan_state_destroy(struct VulkanState *state) {
 
+    for (int i = 0; i < raw_vector_size(&state->framebuffers_VkFramebuffer); i++) {
+        vkDestroyFramebuffer(
+            state->logical_device, 
+            *(VkFramebuffer *)raw_vector_get_ptr(&state->framebuffers_VkFramebuffer, i), 
+            NULL);
+    }
     vkDestroyPipelineLayout(state->logical_device, state->pipeline_layout, NULL);
     vkDestroyPipeline(state->logical_device, state->pipeline, NULL);
     vkDestroyRenderPass(state->logical_device, state->renderpass, NULL);
