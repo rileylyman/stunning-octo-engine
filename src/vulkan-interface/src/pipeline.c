@@ -83,12 +83,22 @@ VkRenderPass create_render_pass(VkDevice device, VkFormat image_format) {
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &attach_ref;
 
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderpass_ci = {};
     renderpass_ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderpass_ci.attachmentCount = 1;
     renderpass_ci.pAttachments = &color_attachment;
     renderpass_ci.subpassCount = 1;
     renderpass_ci.pSubpasses = &subpass;
+    renderpass_ci.dependencyCount = 1;
+    renderpass_ci.pDependencies = &dependency;
 
     VkRenderPass renderpass;
     if (vkCreateRenderPass(device, &renderpass_ci, NULL, &renderpass) != VK_SUCCESS) {

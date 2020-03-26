@@ -11,11 +11,8 @@ int main() {
     init_log();
 
     struct VulkanState vulkan_state = vulkan_state_create();
-
-    while (!glfwWindowShouldClose(vulkan_state.window)) {
-        glfwPollEvents();
-    }
-
+    main_loop(&vulkan_state);
     vulkan_state_destroy(&vulkan_state);
+
     return EXIT_SUCCESS;
 }

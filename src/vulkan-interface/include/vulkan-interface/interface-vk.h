@@ -44,6 +44,7 @@ struct VulkanState {
 };
 
 struct VulkanState vulkan_state_create(); 
+void main_loop();
 void vulkan_state_destroy(struct VulkanState *state);
 
 

@@ -63,7 +63,7 @@ struct RawVector create_command_buffers(
         rpb_info.renderArea.offset = (VkOffset2D){0,0};
         rpb_info.renderArea.extent = extent;
 
-        VkClearColorValue clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
+        VkClearValue clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
         rpb_info.clearValueCount = 1;
         rpb_info.pClearValues = &clear_color;
 

@@ -1,6 +1,115 @@
 #include "vulkan-interface/interface-vk.h"
 #include "vulkan-interface/pipeline.h"
 
+#define MAX_FRAMES_IN_FLIGHT 2
+
+void main_loop(struct VulkanState *state) {
+    //
+    // Create synchronization primitives
+    //
+    VkSemaphore imageAvailableSemaphores[MAX_FRAMES_IN_FLIGHT];
+    VkSemaphore renderFinishedSemaphores[MAX_FRAMES_IN_FLIGHT];
+    VkFence     frameFences             [MAX_FRAMES_IN_FLIGHT];
+    VkFence     imageFences             [raw_vector_size(&state->swapchain_images_VkImage)];
+    memset(imageFences, 0, sizeof(VkFence) * raw_vector_size(&state->swapchain_images_VkImage));
+
+    VkSemaphoreCreateInfo semaphoreInfo = {};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo = {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        if (vkCreateSemaphore(state->logical_device, &semaphoreInfo, NULL, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(state->logical_device, &semaphoreInfo, NULL, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(state->logical_device, &fenceInfo, NULL, &frameFences[i]) != VK_SUCCESS) {
+            log_fatal("Could not create sempahores\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    size_t current_frame = 0;
+    while (!glfwWindowShouldClose(state->window)) {
+        glfwPollEvents();
+        
+        vkWaitForFences(state->logical_device, 1, &frameFences[current_frame], VK_TRUE, UINT64_MAX);
+
+        //
+        // Acquire swapchain image. Signal imageAvailableSemaphore when done
+        //
+        uint32_t imageIndex;
+        vkAcquireNextImageKHR(
+            state->logical_device, 
+            state->swapchain, 
+            UINT64_MAX, 
+            imageAvailableSemaphores[current_frame], 
+            VK_NULL_HANDLE, 
+            &imageIndex);
+
+        //
+        // We want to prevent the following situation: two frames simultaneously
+        // in flight grab the same image. Then, one submits the draw command to
+        // the image's queue. Before this draw command is finished, the next one also
+        // submits its draw command to the queue. Even though there is the imageAvailableSemaphore
+        // that this subsequent draw command must wait for, it is still not good to have
+        // those two commands in the queue for the same image at the same time. The command
+        // buffer is (probably) not marked for simultaneous use, so this will error.
+        //
+        if (imageFences[imageIndex] != VK_NULL_HANDLE) {
+            vkWaitForFences(state->logical_device, 1, &imageFences[imageIndex], VK_TRUE, UINT64_MAX);
+        }
+        imageFences[imageIndex] = frameFences[current_frame];
+
+        //
+        // Submit draw command buffer. Wait to output to color attachment
+        // until imageAvailable semaphore is signaled. Signal renderFinishedSemaphore
+        // when done
+        //
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[current_frame]};
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[current_frame]};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = (VkCommandBuffer *)raw_vector_get_ptr(&state->command_buffers, imageIndex);
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+
+        vkResetFences(state->logical_device, 1, &frameFences[current_frame]);
+        if (vkQueueSubmit(state->graphics_queue, 1, &submitInfo, frameFences[current_frame]) != VK_SUCCESS) {
+            log_fatal("failed to submit draw command buffer!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        //
+        // Submit presentation command to presentation queue. Wait on
+        // renderFinishedSemaphore to be signaled before proceeding
+        //
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &state->swapchain;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = NULL; // Optional
+        vkQueuePresentKHR(state->presentation_queue, &presentInfo);
+
+        current_frame = (current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
+
+    vkDeviceWaitIdle(state->logical_device);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(state->logical_device, imageAvailableSemaphores[i], NULL);
+        vkDestroySemaphore(state->logical_device, renderFinishedSemaphores[i], NULL);
+        vkDestroyFence(state->logical_device, frameFences[i], NULL);
+    }
+}
 
 //
 // Initializes all Vulkan state
