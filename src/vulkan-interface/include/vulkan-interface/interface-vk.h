@@ -44,6 +44,7 @@ struct VulkanState {
 };
 
 struct VulkanState vulkan_state_create(); 
+void vulkan_swapchain_recreate(struct VulkanState *state);
 void main_loop();
 void vulkan_state_destroy(struct VulkanState *state);
 

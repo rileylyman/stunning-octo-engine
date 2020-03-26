@@ -3,6 +3,11 @@
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
+static bool glfw_window_resized = false;
+static void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
+    glfw_window_resized = true;
+}
+
 void main_loop(struct VulkanState *state) {
     //
     // Create synchronization primitives
@@ -39,13 +44,25 @@ void main_loop(struct VulkanState *state) {
         // Acquire swapchain image. Signal imageAvailableSemaphore when done
         //
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(
+        VkResult result = vkAcquireNextImageKHR(
             state->logical_device, 
             state->swapchain, 
             UINT64_MAX, 
             imageAvailableSemaphores[current_frame], 
             VK_NULL_HANDLE, 
             &imageIndex);
+
+        //
+        // Check to see if current swapchain is out of date.
+        // If so, recreate it.
+        //
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || glfw_window_resized) {
+            glfw_window_resized = false;
+            vulkan_swapchain_recreate(state);
+        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            log_fatal("failed to acquire swapchain image!\n");
+            exit(EXIT_FAILURE);
+        }
 
         //
         // We want to prevent the following situation: two frames simultaneously
@@ -98,7 +115,19 @@ void main_loop(struct VulkanState *state) {
         presentInfo.pSwapchains = &state->swapchain;
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = NULL; // Optional
-        vkQueuePresentKHR(state->presentation_queue, &presentInfo);
+        result = vkQueuePresentKHR(state->presentation_queue, &presentInfo);
+
+        //
+        // Check to see if the current swapchain is out of date or suboptimal. 
+        // If so, recreate it.
+        //
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || glfw_window_resized) {
+            glfw_window_resized = false;
+            vulkan_swapchain_recreate(state);
+        } else if (result != VK_SUCCESS) {
+            log_fatal("failed to present swapchain image!\n");
+            exit(EXIT_FAILURE);
+        }
 
         current_frame = (current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
@@ -111,12 +140,95 @@ void main_loop(struct VulkanState *state) {
     }
 }
 
+void vulkan_swapchain_recreate(struct VulkanState *state) {
+
+    //
+    // Wait until we are not using any swapchain resources
+    //
+    vkDeviceWaitIdle(state->logical_device);
+
+    //
+    // Free all resources dependent on the swapchain
+    //
+    vkFreeCommandBuffers(
+        state->logical_device,
+        state->command_pool,
+        raw_vector_size(&state->command_buffers),
+        (VkCommandBuffer *)raw_vector_get_ptr(&state->command_buffers, 0));
+    vkDestroyPipeline(state->logical_device, state->pipeline, NULL);
+    vkDestroyPipelineLayout(state->logical_device, state->pipeline_layout, NULL);
+    vkDestroyRenderPass(state->logical_device, state->renderpass, NULL);
+    for (int i = 0; i < raw_vector_size(&state->swapchain_images_VkImage); i++) {
+        vkDestroyFramebuffer(
+            state->logical_device, 
+            *(VkFramebuffer *)raw_vector_get_ptr(&state->framebuffers_VkFramebuffer, i), 
+            NULL);
+        vkDestroyImageView(
+            state->logical_device, 
+            *(VkImageView *)raw_vector_get_ptr(&state->swapchain_image_views_VkImageView, i), 
+            NULL);
+    }
+    vkDestroySwapchainKHR(state->logical_device, state->swapchain, NULL);
+
+
+    //
+    // Generate a new swapchain and all resources that depend on it
+    //
+    int width, height;
+    glfwGetFramebufferSize(state->window, &width, &height);
+    state->swapchain = create_swapchain(
+        state->logical_device, 
+        state->physical_device.physical_device,
+        state->surface,
+        width,
+        height,
+        optional_index_get_value(&state->physical_device.graphics_family_index),
+        optional_index_get_value(&state->physical_device.presentation_family_index),
+        &state->swapchain_format,
+        &state->swapchain_extent
+        );
+
+    uint32_t image_count;
+    vkGetSwapchainImagesKHR(state->logical_device, state->swapchain, &image_count, NULL);
+    VkImage images[image_count];
+    vkGetSwapchainImagesKHR(state->logical_device, state->swapchain, &image_count, images);
+    state->swapchain_images_VkImage = raw_vector_create(sizeof(VkImage), image_count);
+    raw_vector_extend_back(&state->swapchain_images_VkImage, images, image_count);
+
+    state->swapchain_image_views_VkImageView = create_swapchain_image_views(
+        state->logical_device, state->swapchain_images_VkImage, state->swapchain_format);
+
+    state->renderpass = create_render_pass(state->logical_device, state->swapchain_format);
+
+    state->pipeline = create_graphics_pipeline(
+        state->logical_device, 
+        state->swapchain_extent, 
+        state->renderpass, 
+        &state->pipeline_layout);
+
+    state->framebuffers_VkFramebuffer = create_framebuffers(
+        state->logical_device, 
+        state->renderpass, 
+        state->swapchain_extent, 
+        &state->swapchain_image_views_VkImageView);
+
+    struct RawVector command_buffers = create_command_buffers(
+        state->logical_device,
+        state->command_pool,
+        state->renderpass,
+        state->pipeline,
+        &state->framebuffers_VkFramebuffer,
+        state->swapchain_extent);
+}
+
 //
 // Initializes all Vulkan state
 //
 struct VulkanState vulkan_state_create() {
 
     GLFWwindow *window = init_window();
+    glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
+
     VkInstance instance = init_vulkan();
 #ifndef NDEBUG
     VkDebugUtilsMessengerEXT debug_messenger = init_vulkan_debug_messenger(instance);
@@ -132,12 +244,14 @@ struct VulkanState vulkan_state_create() {
     VkFormat swapchain_format;
     VkExtent2D swapchain_extent;
 
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
     VkSwapchainKHR swapchain = create_swapchain(
         logical_device, 
         physical_device.physical_device,
         surface,
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT,
+        width,
+        height,
         optional_index_get_value(&physical_device.graphics_family_index),
         optional_index_get_value(&physical_device.presentation_family_index),
         &swapchain_format,

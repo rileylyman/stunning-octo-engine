@@ -29,6 +29,10 @@ struct RawVector create_command_buffers(
     struct RawVector *rvec_VkFramebuffer, 
     VkExtent2D extent) {
 
+    //
+    // Allocation info to allocate each command buffer from
+    // the command buffer pool. We want to create primary 
+    //
     VkCommandBufferAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.commandPool = pool;
