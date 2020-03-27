@@ -218,7 +218,8 @@ void vulkan_swapchain_recreate(struct VulkanState *state) {
         state->renderpass,
         state->pipeline,
         &state->framebuffers_VkFramebuffer,
-        state->swapchain_extent);
+        state->swapchain_extent,
+        state->vertex_buffer);
 }
 
 //
@@ -275,6 +276,12 @@ struct VulkanState vulkan_state_create() {
 
     struct RawVector framebuffers = create_framebuffers(logical_device, renderpass, swapchain_extent, &swapchain_image_views_VkImageView);
 
+    VkBuffer vertex_buffer = create_vertex_buffer(logical_device);
+    VkDeviceMemory vertex_buffer_memory = allocate_and_bind_and_fill_vertex_buffer_memory(
+        physical_device.physical_device, 
+        logical_device, 
+        vertex_buffer);
+
     VkCommandPool pool = create_command_pool(logical_device, optional_index_get_value(&physical_device.graphics_family_index));
     struct RawVector command_buffers = create_command_buffers(
         logical_device,
@@ -282,7 +289,9 @@ struct VulkanState vulkan_state_create() {
         renderpass,
         pipeline,
         &framebuffers,
-        swapchain_extent);
+        swapchain_extent,
+        vertex_buffer);
+
 
     return (struct VulkanState) {
         .window = window,
@@ -313,6 +322,9 @@ struct VulkanState vulkan_state_create() {
 
         .command_pool = pool,
         .command_buffers = command_buffers,
+
+        .vertex_buffer = vertex_buffer,
+        .vertex_buffer_memory = vertex_buffer_memory,
     };
 } 
 
@@ -321,6 +333,8 @@ struct VulkanState vulkan_state_create() {
 //
 void vulkan_state_destroy(struct VulkanState *state) {
 
+    vkDestroyBuffer(state->logical_device, state->vertex_buffer, NULL);
+    vkFreeMemory(state->logical_device, state->vertex_buffer_memory, NULL);
     vkDestroyCommandPool(state->logical_device, state->command_pool, NULL);
     for (int i = 0; i < raw_vector_size(&state->framebuffers_VkFramebuffer); i++) {
         vkDestroyFramebuffer(

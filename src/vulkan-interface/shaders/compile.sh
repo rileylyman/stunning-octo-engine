@@ -1,6 +1,4 @@
 #!/bin/bash
 
-#Run this script from the library folder (src/vulkan-interface)
-echo $PWD
-glslc ${PWD}/shaders/shader.vert -o ${PWD}/shaders/spir-v/vert.spv
-glslc ${PWD}/shaders/shader.frag -o ${PWD}/shaders/spir-v/frag.spv
+glslc ${PWD}/shader.vert -o ${PWD}/spir-v/vert.spv
+glslc ${PWD}/shader.frag -o ${PWD}/spir-v/frag.spv

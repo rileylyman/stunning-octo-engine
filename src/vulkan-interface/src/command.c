@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "vulkan-interface/command.h"
+#include "vulkan-interface/vertex.h"
 
 //
 // Creates a command pool for the given queue family index on
@@ -27,7 +28,8 @@ struct RawVector create_command_buffers(
     VkRenderPass renderpass, 
     VkPipeline pipeline,
     struct RawVector *rvec_VkFramebuffer, 
-    VkExtent2D extent) {
+    VkExtent2D extent,
+    VkBuffer vertex_buffer) {
 
     //
     // Allocation info to allocate each command buffer from
@@ -73,7 +75,12 @@ struct RawVector create_command_buffers(
 
         vkCmdBeginRenderPass(current_command_buffer, &rpb_info, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-        vkCmdDraw(current_command_buffer, 3, 1, 0, 0);
+
+        VkBuffer vertex_buffers[] = {vertex_buffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(current_command_buffer, 0, 1, vertex_buffers, offsets);
+
+        vkCmdDraw(current_command_buffer, NUM_QUAD_VERTICES, 1, 0, 0);
         vkCmdEndRenderPass(current_command_buffer);
 
         if (vkEndCommandBuffer(current_command_buffer) != VK_SUCCESS) {

@@ -9,6 +9,7 @@
 #include "vulkan-interface/init.h"
 #include "vulkan-interface/swapchain.h"
 #include "vulkan-interface/command.h"
+#include "vulkan-interface/vertex.h"
 #include "language/optional.h"
 #include "language/raw_vector.h"
 
@@ -41,6 +42,9 @@ struct VulkanState {
 
     VkCommandPool command_pool;
     struct RawVector command_buffers;
+
+    VkBuffer vertex_buffer;
+    VkDeviceMemory vertex_buffer_memory;
 };
 
 struct VulkanState vulkan_state_create(); 

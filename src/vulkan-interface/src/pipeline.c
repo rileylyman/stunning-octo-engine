@@ -2,6 +2,7 @@
 #include <language/fileops.h>
 #include "vulkan-interface/pipeline.h"
 #include "log.h"
+#include "vulkan-interface/vertex.h"
 
 #define VERT_SHADER ("./src/vulkan-interface/shaders/spir-v/vert.spv")
 #define FRAG_SHADER ("./src/vulkan-interface/shaders/spir-v/frag.spv")
@@ -148,10 +149,15 @@ VkPipeline create_graphics_pipeline(VkDevice device, VkExtent2D sc_extent, VkRen
     //
     // Vertex input data specification 
     //
+    VkVertexInputBindingDescription binding_description = get_binding_description();
+    struct RawVector attr_descriptions = get_attribute_description();
+
     VkPipelineVertexInputStateCreateInfo vertex_input_ci = {};
     vertex_input_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_ci.vertexAttributeDescriptionCount = 0;
-    vertex_input_ci.vertexBindingDescriptionCount = 0;
+    vertex_input_ci.vertexBindingDescriptionCount = 1;
+    vertex_input_ci.pVertexBindingDescriptions = &binding_description;
+    vertex_input_ci.vertexAttributeDescriptionCount = raw_vector_size(&attr_descriptions);;
+    vertex_input_ci.pVertexAttributeDescriptions = (VkVertexInputAttributeDescription *)raw_vector_get_ptr(&attr_descriptions, 0);
 
     //
     // Vertex input assembly fixed pipeline stage

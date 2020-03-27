@@ -9,6 +9,7 @@ add_library(
     src/interface-vk.c
     src/pipeline.c
     src/swapchain.c
+    src/vertex.c
 
     include/vulkan-interface/command.h
     include/vulkan-interface/debug.h
@@ -18,6 +19,7 @@ add_library(
     include/vulkan-interface/interface-vk.h
     include/vulkan-interface/pipeline.h
     include/vulkan-interface/swapchain.h
+    include/vulkan-interface/vertex.h
 )
 
 set (CMAKE_BUILD_TYPE Debug)
